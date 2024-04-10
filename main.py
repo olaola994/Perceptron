@@ -13,7 +13,7 @@ Y_train = []
 X_test = []
 Y_test = []
 
-print('Please choose option for your KNN classifier\nType:\n-"file" if you want to choose a .txt file with your data set\n-"custom" if you want to type your own vectors')
+print('Please choose option classifier\nType:\n-"file" if you want to choose a .txt file with your data set\n-"custom" if you want to type your own vectors')
 option = input()
 if option == 'file':
     root = tk.Tk()
@@ -41,6 +41,7 @@ if option == 'file':
 
 elif option == 'custom':
     vectors = []
+    labels = []
     with open('file.txt', 'r') as file:
         for line in file:
             elements = line.strip().split(',')
@@ -50,14 +51,13 @@ elif option == 'custom':
 
     train_set = data[:len(data) // 2]
 
-    X_train = []
-    Y_train = []
+
     for line in train_set:
         X_train.append([float(val) for val in line[:len(line) - 1]])
         Y_train.append(int(line[len(line) - 1]))
 
-    X_test = []
-    print("Please enter your vectors. Each vector should be in the format 'x1,x2,x3,x4', e.g., '6.3,3.3,4.7,1.6. Press Enter twice to finish.")
+
+    print("Please enter your vectors. Each vector should be in the format 'x1,x2,x3,x4,class', e.g., '6.3,3.3,4.7,1.6,1 Press Enter twice to finish.")
     while True:
         line = input()
         if not line:
@@ -66,13 +66,14 @@ elif option == 'custom':
         if (len(elements) < 2):
             print("Each vector should contain more than 2 elements separated by commas.")
             continue
-        vectors.append([float(val) for val in elements])
+        vectors.append([float(val) for val in elements[:len(elements)-1]])
+        labels.append(int(elements[len(elements)-1]))
     X_test.extend(vectors)
-
+    Y_test.extend(labels)
 
 
 class Perceptron:
-    def __init__(self, input_size, alpha=0.02,  epochs=10):
+    def __init__(self, input_size, alpha=0.02,  epochs=1):
         self.input_size = input_size
         self.epochs = epochs
         self.weights = np.zeros(input_size + 1)
@@ -107,8 +108,17 @@ class Perceptron:
             prediction = self.predict(x)
             predictions.append(prediction)
             print(str(x) + " " + str(predictions[i]))
+        return predictions
+
+    def accuracy(self, predictions):
+        counter = 0
+        for i, label in enumerate(Y_test):
+            if label == predictions[i]:
+                counter += 1
+        return (counter / len(predictions)) * 100
 
 
 perceptron = Perceptron(4)
 perceptron.train(X_train, Y_train)
-perceptron.test(X_test)
+predictions = perceptron.test(X_test)
+print(perceptron.accuracy(predictions))
